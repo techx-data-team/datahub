@@ -1,0 +1,148 @@
+# Docker compose file covering DataHub's default configuration, which is to run all containers on a single host.
+
+# Please see the README.md for instructions as to how to use and customize.
+
+# NOTE: This file does not build! No dockerfiles are set. See the README.md in this directory.
+---
+version: '3.8'
+services:
+  # This "container" is a workaround to pre-create topics
+  mysql:
+    container_name: mysql
+    hostname: mysql
+    image: mysql:5.7
+    env_file: mysql/env/docker.env
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_bin
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysqldata:/var/lib/mysql
+
+  mysql-setup:
+    build:
+      context: ../
+      dockerfile: docker/mysql-setup/Dockerfile
+    image: acryldata/datahub-mysql-setup:${DATAHUB_VERSION:-head}
+    env_file: mysql-setup/env/docker.env
+    hostname: mysql-setup
+    container_name: mysql-setup
+    depends_on:
+      - mysql
+
+  kafka-setup:
+    image: linkedin/datahub-kafka-setup:debug
+    build:
+      context: kafka-setup
+      dockerfile: Dockerfile
+      args:
+        APP_ENV: dev
+    env_file: kafka-setup/env/docker-dev-techx.env
+    hostname: kafka-setup
+    container_name: kafka-setup
+
+  elasticsearch:
+    image: elasticsearch:7.9.3
+    env_file: elasticsearch/env/docker.env
+    container_name: elasticsearch
+    hostname: elasticsearch
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+        test: ["CMD-SHELL", "curl -sS --fail 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=0s' || exit 1"]
+        start_period: 2m
+        retries: 4
+
+  # neo4j:
+  #   image: neo4j:4.0.6
+  #   env_file: neo4j/env/docker.env
+  #   hostname: neo4j
+  #   container_name: neo4j
+  #   ports:
+  #     - "7474:7474"
+  #     - "7687:7687"
+  #   volumes:
+  #     - neo4jdata:/data
+
+  # This "container" is a workaround to pre-create search indices
+  elasticsearch-setup:
+    build:
+      context: ../
+      dockerfile: docker/elasticsearch-setup/Dockerfile
+    image: linkedin/datahub-elasticsearch-setup:${DATAHUB_VERSION:-head}
+    env_file: elasticsearch-setup/env/docker.env
+    hostname: elasticsearch-setup
+    container_name: elasticsearch-setup
+    depends_on:
+      - elasticsearch
+
+  datahub-gms:
+    image: linkedin/datahub-gms:debug
+    build:
+      context: datahub-gms
+      dockerfile: Dockerfile
+      args:
+        APP_ENV: dev
+    env_file: datahub-gms/env/docker.env
+    hostname: datahub-gms
+    container_name: datahub-gms
+    environment:
+      - SKIP_ELASTICSEARCH_CHECK=false
+      - DATAHUB_SERVER_TYPE=${DATAHUB_SERVER_TYPE:-dev}
+      - DATAHUB_TELEMETRY_ENABLED=${DATAHUB_TELEMETRY_ENABLED:-true}
+    volumes:
+      - ./datahub-gms/start.sh:/datahub/datahub-gms/scripts/start.sh
+      - ./datahub-gms/jetty.xml:/datahub/datahub-gms/scripts/jetty.xml
+      - ./monitoring/client-prometheus-config.yaml:/datahub/datahub-gms/scripts/prometheus-config.yaml
+      - ../metadata-models/src/main/resources/:/datahub/datahub-gms/resources
+      - ../metadata-service/war/build/libs/:/datahub/datahub-gms/bin
+      - ${HOME}/.datahub/plugins:/etc/datahub/plugins
+    depends_on:
+      - elasticsearch-setup
+      - kafka-setup
+      - mysql
+      # - neo4j
+    ports:
+      - "8280:8080"
+
+  datahub-frontend-react:
+    image: linkedin/datahub-frontend-react:debug
+    build:
+      context: datahub-frontend
+      dockerfile: Dockerfile
+      args:
+        APP_ENV: dev
+    volumes:
+      - ../datahub-frontend/build/stage/playBinary:/datahub-frontend
+    env_file: datahub-frontend/env/docker.env
+    hostname: datahub-frontend-react
+    container_name: datahub-frontend-react
+    ports:
+      - "9002:9002"
+    depends_on:
+      - datahub-gms
+
+  datahub-actions:
+    image: acryldata/datahub-actions:${ACTIONS_VERSION:-head}
+    hostname: actions
+    env_file: datahub-actions/env/docker.env
+    restart: on-failure:5
+    depends_on:
+      - datahub-gms
+
+networks:
+  default:
+    external:
+      name: dev
+
+volumes:
+  esdata:
+  # neo4jdata:
+  zkdata:
+  broker:
+  mysqldata:

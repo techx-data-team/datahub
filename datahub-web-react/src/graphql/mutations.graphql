@@ -34,6 +34,11 @@ mutation updateDescription($input: DescriptionUpdateInput!) {
     updateDescription(input: $input)
 }
 
+
+mutation updateCustomProperties($input: CustomPropertiesUpdateInput!) {
+    updateCustomProperties(input: $input)
+}
+
 mutation setDomain($entityUrn: String!, $domainUrn: String!) {
     setDomain(entityUrn: $entityUrn, domainUrn: $domainUrn)
 }

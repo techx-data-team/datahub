@@ -31,6 +31,9 @@ module.exports = {
         'no-prototype-builtins': 'off',
         'react/require-default-props': 'off',
         'no-underscore-dangle': 'off',
+        'no-noninteractive-element-interactions': 'off',
+        'anchor-is-valid': 'off',
+        'react/forbid-prop-types': 'off',
         '@typescript-eslint/no-unused-vars': [
             'error',
             {

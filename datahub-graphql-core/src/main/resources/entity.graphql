@@ -311,6 +311,11 @@ type Mutation {
     updateDescription(input: DescriptionUpdateInput!): Boolean
 
     """
+    TechX. Update custom properies of a resource. Currently only supports Containers
+    """
+    updateCustomProperties(input: CustomPropertiesUpdateInput!): Boolean
+    
+    """
     Remove a user. Requires Manage Users & Groups Platform Privilege
     """
     removeUser(urn: String!): Boolean
@@ -6414,6 +6419,20 @@ input DescriptionUpdateInput {
     A sub resource identifier, eg dataset field path
     """
     subResource: String
+}
+
+"""
+TechX. Update the custom properties of a resouce. Currently support Resource only (Namely Glossary Term, DataSet)
+"""
+input CustomPropertiesUpdateInput {
+    """
+    The new custom properies mapping
+    """
+    customProperties: [StringMapEntryInput!]
+    """
+    The primary key of the resource to attach the description to, eg dataset urn
+    """
+    resourceUrn: String!
 }
 
 """

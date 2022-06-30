@@ -6,6 +6,7 @@ import { ApolloClient, ApolloProvider, createHttpLink, InMemoryCache, ServerErro
 import { onError } from '@apollo/client/link/error';
 import { ThemeProvider } from 'styled-components';
 import './App.less';
+import './index.css';
 import { Routes } from './app/Routes';
 import EntityRegistry from './app/entity/EntityRegistry';
 import { DashboardEntity } from './app/entity/dashboard/DashboardEntity';
