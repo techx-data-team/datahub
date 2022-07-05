@@ -1798,11 +1798,34 @@
       "doc" : "Schema definition of the glossary term",
       "optional" : true,
       "deprecated" : true
+    }, {
+      "name" : "listOfValue",
+      "type" : {
+        "type" : "array",
+        "items" : {
+          "type" : "record",
+          "name" : "GlossaryTermLOV",
+          "doc" : "Misc. properties about an entity.",
+          "fields" : [ {
+            "name" : "key",
+            "type" : "string"
+          }, {
+            "name" : "name",
+            "type" : "string"
+          }, {
+            "name" : "descriptions",
+            "type" : "string",
+            "optional" : true
+          } ]
+        }
+      },
+      "doc" : "Glossary term LOV",
+      "optional" : true
     } ],
     "Aspect" : {
       "name" : "glossaryTermInfo"
     }
-  }, {
+  }, "com.linkedin.glossary.GlossaryTermLOV", {
     "type" : "record",
     "name" : "CorpGroupInfo",
     "namespace" : "com.linkedin.identity",

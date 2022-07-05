@@ -1,0 +1,10 @@
+namespace com.linkedin.glossary
+
+/**
+ * Misc. properties about an entity.
+ */
+record GlossaryTermLOV {
+    key: string
+    name: string
+    descriptions: optional string
+}

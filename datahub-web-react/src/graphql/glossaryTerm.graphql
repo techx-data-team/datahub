@@ -61,6 +61,11 @@ query getGlossaryTerm($urn: String!, $start: Int, $count: Int) {
                 key
                 value
             }
+            listOfValue {
+                key
+                name
+                descriptions
+            }
         }
         schemaMetadata(version: 0) {
             ...schemaMetadataFields
@@ -85,4 +90,8 @@ mutation addRelatedTerms($input: RelatedTermsInput!) {
 
 mutation removeRelatedTerms($input: RelatedTermsInput!) {
     removeRelatedTerms(input: $input)
+}
+
+mutation updateGlossaryTermLOV($input: GlossaryTermLOVUpdateInput!) {
+    updateGlossaryTermLOV(input: $input)
 }

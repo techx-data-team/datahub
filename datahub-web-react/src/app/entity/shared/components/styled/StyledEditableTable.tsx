@@ -1,21 +1,20 @@
 import { Button, Form, Input, Popconfirm, TableProps } from 'antd';
-import type { FormInstance } from 'antd/lib/form';
-import React, { useContext, useEffect, useState } from 'react';
 import { PlusOutlined } from '@ant-design/icons';
+import type { FormInstance } from 'antd/lib/form';
 import styled from 'styled-components';
+import React, { useContext, useEffect, useState } from 'react';
+import { StyledTable } from './StyledTable';
 import CSVParser, { IFileInfo } from '../../utils/CSVParser';
 import { ANTD_GRAY } from '../../constants';
-import { StyledTable } from '../../components/styled/StyledTable';
 
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
 
-interface Item {
-    key: string;
-    value: string;
-}
-
 interface EditableRowProps {
     index: number;
+}
+
+export interface BaseItem {
+    internal_key: string | number;
 }
 
 const TitleContainer = styled.div`
@@ -39,16 +38,16 @@ const EditableRow: React.FC<EditableRowProps> = (eprops: EditableRowProps) => {
     );
 };
 
-interface EditableCellProps {
+interface EditableCellProps<T extends BaseItem> {
     title: React.ReactNode;
     editable: boolean;
     children: React.ReactNode;
-    dataIndex: keyof Item;
-    record: Item;
-    handleSave: (record: Item) => void;
+    dataIndex: keyof T;
+    record: T;
+    handleSave: (record: T) => void;
 }
 
-const EditableCell: React.FC<EditableCellProps> = (props: EditableCellProps) => {
+function EditableCell<T extends BaseItem>(props: EditableCellProps<T>) {
     const { title, editable, children, dataIndex, record, handleSave } = props;
     const [editing, setEditing] = useState(false);
     // const inputRef = useRef<InputRef>(null);
@@ -83,7 +82,7 @@ const EditableCell: React.FC<EditableCellProps> = (props: EditableCellProps) => 
         childNode = editing ? (
             <Form.Item
                 style={{ margin: 0 }}
-                name={dataIndex}
+                name={dataIndex.toString()}
                 rules={[
                     {
                         required: true,
@@ -101,51 +100,47 @@ const EditableCell: React.FC<EditableCellProps> = (props: EditableCellProps) => 
     }
 
     return <td>{childNode}</td>;
-};
-
-export interface PropertyDataType {
-    key: React.Key;
-    name: string;
-    value: string;
 }
 
-type EditableTableProps = TableProps<PropertyDataType>;
+type EditableTableProps<T extends BaseItem> = TableProps<T>;
 
-interface Props {
-    dataSource: PropertyDataType[];
-    setDataSource: React.Dispatch<React.SetStateAction<PropertyDataType[]>>;
+type ColumnTypes<T extends BaseItem> = Exclude<EditableTableProps<T>['columns'], undefined>;
+
+export interface StyledEditableTableProps<T extends BaseItem> {
+    dataSource: T[];
+    setDataSource: React.Dispatch<React.SetStateAction<T[]>>;
+    columnList: (ColumnTypes<T>[number] & { editable?: boolean; dataIndex: string })[];
+    defaultItemGen: (key: string | number) => T;
 }
 
-type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
-
-export default function PropertiesEditableTable(props: Props) {
-    const { dataSource, setDataSource } = props;
-
+export default function StyledEditableTable<T extends BaseItem>(props: StyledEditableTableProps<T>) {
+    const { dataSource, setDataSource, columnList, defaultItemGen } = props;
     const [count, setCount] = useState(dataSource.length);
 
     const handleDelete = (key: React.Key) => {
-        const newData = dataSource.filter((item) => item.key !== key);
+        const newData = dataSource.filter((item) => item.internal_key !== key);
         setDataSource(newData);
     };
 
-    const defaultColumns: (ColumnTypes[number] & { editable?: boolean; dataIndex: string })[] = [
-        {
-            title: 'Name',
-            dataIndex: 'name',
-            width: '30%',
-            editable: true,
-        },
-        {
-            title: 'Value',
-            dataIndex: 'value',
-            editable: true,
-        },
+    const defaultColumns: (ColumnTypes<T>[number] & { editable?: boolean; dataIndex: string })[] = [
+        // {
+        //     title: 'Name',
+        //     dataIndex: 'name',
+        //     width: '30%',
+        //     editable: true,
+        // },
+        // {
+        //     title: 'Value',
+        //     dataIndex: 'value',
+        //     editable: true,
+        // },
+        ...columnList,
         {
             title: 'Operation',
             dataIndex: 'operation',
-            render: (_, record: { key: React.Key }) =>
+            render: (_, record: { internal_key: React.Key }) =>
                 dataSource.length >= 1 ? (
-                    <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.key)}>
+                    <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.internal_key)}>
                         <Button>Delete</Button>
                     </Popconfirm>
                 ) : null,
@@ -153,18 +148,14 @@ export default function PropertiesEditableTable(props: Props) {
     ];
 
     const handleAdd = () => {
-        const newData: PropertyDataType = {
-            key: count,
-            name: 'Add a key',
-            value: 'Add some value',
-        };
+        const newData: T = defaultItemGen(count);
         setDataSource([...dataSource, newData]);
         setCount(count + 1);
     };
 
-    const handleSave = (row: PropertyDataType) => {
+    const handleSave = (row: T) => {
         const newData = [...dataSource];
-        const index = newData.findIndex((item) => row.key === item.key);
+        const index = newData.findIndex((item) => row.internal_key === item.internal_key);
         const item = newData[index];
         newData.splice(index, 1, {
             ...item,
@@ -186,7 +177,7 @@ export default function PropertiesEditableTable(props: Props) {
         }
         return {
             ...col,
-            onCell: (record: PropertyDataType) => ({
+            onCell: (record: T) => ({
                 record,
                 editable: col.editable,
                 dataIndex: col.dataIndex,
@@ -203,10 +194,10 @@ export default function PropertiesEditableTable(props: Props) {
         transformHeader: (header: string) => header.toLowerCase().replace(/\W/g, '_'),
     };
 
-    const handleFileUpload = (data: PropertyDataType[], _fileInfo: IFileInfo) => {
+    const handleFileUpload = (data: T[], _fileInfo: IFileInfo) => {
         // console.log(`Filename: ${fileInfo.name} Size: ${fileInfo.size}`);
         data.forEach((e, i) => {
-            e.key = i;
+            e.internal_key = i;
         });
         // console.log(data);
         setDataSource(data);
@@ -230,7 +221,7 @@ export default function PropertiesEditableTable(props: Props) {
                 rowClassName={() => 'editable-row'}
                 bordered
                 dataSource={dataSource}
-                columns={columns as ColumnTypes}
+                columns={columns as ColumnTypes<T>}
             />
         </div>
     );

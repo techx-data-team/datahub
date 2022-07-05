@@ -34,6 +34,7 @@ module.exports = {
         'no-noninteractive-element-interactions': 'off',
         'anchor-is-valid': 'off',
         'react/forbid-prop-types': 'off',
+        'react/prop-types': 'off',
         '@typescript-eslint/no-unused-vars': [
             'error',
             {

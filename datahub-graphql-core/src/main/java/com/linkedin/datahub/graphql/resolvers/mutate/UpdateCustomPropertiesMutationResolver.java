@@ -53,15 +53,15 @@ public class UpdateCustomPropertiesMutationResolver implements DataFetcher<Compl
 
       try {
         Urn actor = CorpuserUrn.createFromString(context.getActorUrn());
-        java.util.List<StringMapEntryInput>  input_props = input.getCustomProperties();
-        Map<String, String> input_map = new HashMap<>();
-        input_props.forEach((element) -> {
-            input_map.put(element.getKey(), element.getValue());
+        java.util.List<StringMapEntryInput>  inputProps = input.getCustomProperties();
+        Map<String, String> inputMap = new HashMap<>();
+        inputProps.forEach((element) -> {
+            inputMap.put(element.getKey(), element.getValue());
         });
-        StringMap final_map = new StringMap(input_map);
+        StringMap finalMap = new StringMap(inputMap);
 
         CustomPropertiesUtils.updateGlossaryTermCustomProperty(
-            final_map,
+            finalMap,
             targetUrn,
             actor,
             _entityService);

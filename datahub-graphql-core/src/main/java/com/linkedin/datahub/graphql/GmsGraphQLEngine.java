@@ -176,6 +176,7 @@ import com.linkedin.datahub.graphql.resolvers.user.ListUsersResolver;
 import com.linkedin.datahub.graphql.resolvers.user.RemoveUserResolver;
 import com.linkedin.datahub.graphql.resolvers.user.UpdateUserStatusResolver;
 import com.linkedin.datahub.graphql.resolvers.mutate.UpdateCustomPropertiesMutationResolver;
+import com.linkedin.datahub.graphql.resolvers.glossary.UpdateGlossaryTermLOVResolver;
 import com.linkedin.datahub.graphql.types.BrowsableEntityType;
 import com.linkedin.datahub.graphql.types.EntityType;
 import com.linkedin.datahub.graphql.types.LoadableType;
@@ -698,6 +699,7 @@ public class GmsGraphQLEngine {
             .dataFetcher("deletePolicy", new DeletePolicyResolver(this.entityClient))
             .dataFetcher("updateDescription", new UpdateDescriptionResolver(entityService))
             .dataFetcher("updateCustomProperties", new UpdateCustomPropertiesMutationResolver(entityService))
+            .dataFetcher("updateGlossaryTermLOV", new UpdateGlossaryTermLOVResolver(entityService))
             .dataFetcher("addOwner", new AddOwnerResolver(entityService))
             .dataFetcher("addOwners", new AddOwnersResolver(entityService))
             .dataFetcher("removeOwner", new RemoveOwnerResolver(entityService))

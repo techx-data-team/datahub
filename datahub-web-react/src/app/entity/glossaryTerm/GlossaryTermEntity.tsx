@@ -16,6 +16,7 @@ import { DocumentationTab } from '../shared/tabs/Documentation/DocumentationTab'
 import { SidebarAboutSection } from '../shared/containers/profile/sidebar/SidebarAboutSection';
 import GlossaryEntitiesPath from '../../glossary/GlossaryEntitiesPath';
 import { EntityMenuItems } from '../shared/EntityDropdown/EntityDropdown';
+import GlossaryLOV from './profile/GlossaryLOV';
 
 /**
  * Definition of the DataHub Dataset entity.
@@ -102,6 +103,10 @@ export class GlossaryTermEntity implements Entity<GlossaryTerm> {
                         name: 'Properties',
                         component: PropertiesTab,
                     },
+                    {
+                        name: 'LOV',
+                        component: GlossaryLOV,
+                    },
                 ]}
                 sidebarSections={[
                     {
@@ -121,6 +126,7 @@ export class GlossaryTermEntity implements Entity<GlossaryTerm> {
         // if dataset has subTypes filled out, pick the most specific subtype and return it
         return {
             customProperties: glossaryTerm?.properties?.customProperties,
+            listOfValue: glossaryTerm?.properties?.listOfValue,
         };
     };
 

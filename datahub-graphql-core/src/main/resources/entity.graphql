@@ -440,6 +440,11 @@ type Mutation {
     removeRelatedTerms(input: RelatedTermsInput!): Boolean
 
     """
+    Update LOV for Glossary Term
+    """
+    updateGlossaryTermLOV(input: GlossaryTermLOVUpdateInput!): Boolean
+
+    """
     Generates an invite token that can be shared with prospective users to create their accounts.
     """
     createNativeUserInviteToken: InviteToken
@@ -1445,9 +1450,32 @@ type GlossaryTermProperties {
     customProperties: [StringMapEntry!]
 
     """
+    Glossary Term LoV
+    """
+    listOfValue: [GlossaryTermLOV!]
+
+    """
     Schema definition of glossary term
     """
     rawSchema: String
+}
+
+"""
+Glossary Term List of Value
+"""
+type GlossaryTermLOV {
+    """
+    The Key of value inside LOV
+    """
+    key: String!
+    """
+    The Value of value inside LOV
+    """
+    name: String!
+    """
+    Addtional Description Regarding LOV
+    """
+    descriptions: String
 }
 
 """
@@ -6204,6 +6232,38 @@ input RelatedTermsInput {
     The type of relationship we're adding or removing to/from for a Glossary Term
     """
     relationshipType: TermRelationshipType!
+}
+
+"""
+Glossary Term List of Value Input
+"""
+input GlossaryTermLOVInput {
+    """
+    The Key of value inside LOV
+    """
+    key: String!
+    """
+    The Value of value inside LOV
+    """
+    name: String!
+    """
+    Addtional Description Regarding LOV
+    """
+    descriptions: String
+}
+
+"""
+Glossary Term List of Value Update Input
+"""
+input GlossaryTermLOVUpdateInput {
+    """
+    The Glossary Term urn to update List of Value
+    """
+    urn: String!
+    """
+    List of Value Input to update
+    """
+    listOfValue: [GlossaryTermLOVInput!]
 }
 
 """

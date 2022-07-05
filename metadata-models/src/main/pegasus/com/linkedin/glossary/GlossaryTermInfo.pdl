@@ -68,4 +68,9 @@ record GlossaryTermInfo includes CustomProperties {
    */
   @deprecated
   rawSchema: optional string
+
+  /**
+   * Glossary term LOV
+   */
+  listOfValue: optional array[GlossaryTermLOV]
 }
