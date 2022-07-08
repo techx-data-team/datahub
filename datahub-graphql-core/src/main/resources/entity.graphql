@@ -1033,6 +1033,79 @@ type Dataset implements EntityWithRelationships & Entity {
     Metadata about the datasets siblings
     """
     siblings: SiblingProperties
+    """
+    Upstream Lineage
+    """
+    upstreamLineage: UpstreamLineageProperties
+}
+
+
+"""
+Upstream lineage of a dataset
+"""
+type UpstreamLineageProperties {
+    """
+    List of upstream dataset lineage information
+    """
+    upstreams: [UpstreamProperties!]!
+    """
+    List of fine-grained lineage information, including field-level lineage
+    """
+    fineGrainedLineages: [FineGrainedLineage!]
+}
+
+"""
+Upstream lineage information about a dataset including the source reporting the lineage
+"""
+type UpstreamProperties {
+    """
+    Audit stamp containing who reported the lineage and when.
+    WARNING: this field is deprecated and may be removed in a future release.
+    """
+    auditStamp: AuditStamp
+    """
+    The upstream dataset the lineage points to
+    """
+    dataset: String
+    """
+    The type of the lineage
+    """
+    type: DatasetLineageType
+}
+
+"""
+A fine-grained lineage from upstream fields/datasets to downstream field(s)
+"""
+type FineGrainedLineage {
+    """
+    The type of upstream entity
+    """
+    upstreamType: FineGrainedLineageUpstreamType!
+
+    """
+    Upstream entities in the lineage
+    """
+    upstreams: [String!]
+
+    """
+    The type of downstream field(s)
+    """
+    downstreamType: FineGrainedLineageDownstreamType!
+
+    """
+    Downstream fields in the lineage
+    """     
+    downstreams: [String!]
+
+    """
+    The transform operation applied to the upstream entities to produce the downstream field(s)
+    """
+    transformOperation: String
+
+    """
+    The confidence in this lineage between 0 (low confidence) and 1 (high confidence)
+    """
+    confidenceScore: Float!
 }
 
 """
@@ -2532,6 +2605,41 @@ enum DatasetLineageType {
     Represents a view defined on the sources
     """
     VIEW
+}
+
+"""
+The type of upstream entity in a fine-grained lineage
+"""
+enum FineGrainedLineageUpstreamType {
+    """
+    Indicates that this lineage is originating from upstream field(s)
+    """
+    FIELD_SET
+
+    """
+    Indicates that this lineage is originating from upstream dataset(s)
+    """
+    DATASET
+
+    """
+    Indicates that there is no upstream lineage i.e. the downstream field is not a derived field
+    """
+    NONE
+}
+
+"""
+The type of downstream field(s) in a fine-grained lineage
+"""
+enum FineGrainedLineageDownstreamType {
+    """
+    Indicates that the lineage is for a single, specific, downstream field
+    """
+    FIELD
+
+    """
+    Indicates that the lineage is for a set of downstream fields
+    """
+    FIELD_SET
 }
 
 """

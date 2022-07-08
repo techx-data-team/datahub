@@ -23,6 +23,7 @@ import com.linkedin.datahub.graphql.types.common.mappers.OwnershipMapper;
 import com.linkedin.datahub.graphql.types.common.mappers.SiblingsMapper;
 import com.linkedin.datahub.graphql.types.common.mappers.StatusMapper;
 import com.linkedin.datahub.graphql.types.common.mappers.StringMapMapper;
+import com.linkedin.datahub.graphql.types.common.mappers.AuditStampMapper;
 import com.linkedin.datahub.graphql.types.common.mappers.util.MappingHelper;
 import com.linkedin.datahub.graphql.types.glossary.mappers.GlossaryTermsMapper;
 import com.linkedin.datahub.graphql.types.mappers.ModelMapper;
@@ -31,6 +32,7 @@ import com.linkedin.dataset.DatasetDeprecation;
 import com.linkedin.dataset.DatasetProperties;
 import com.linkedin.dataset.EditableDatasetProperties;
 import com.linkedin.dataset.ViewProperties;
+import com.linkedin.dataset.UpstreamLineage;
 import com.linkedin.domain.Domains;
 import com.linkedin.entity.EntityResponse;
 import com.linkedin.entity.EnvelopedAspectMap;
@@ -40,8 +42,10 @@ import com.linkedin.schema.SchemaMetadata;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 
-import static com.linkedin.metadata.Constants.*;
+import java.util.List;
+import java.util.ArrayList;
 
+import static com.linkedin.metadata.Constants.*;
 
 /**
  * Maps GMS response objects to objects conforming to the GQL schema.
@@ -64,34 +68,35 @@ public class DatasetMapper implements ModelMapper<EntityResponse, Dataset> {
         result.setType(EntityType.DATASET);
 
         EnvelopedAspectMap aspectMap = entityResponse.getAspects();
-        MappingHelper<Dataset> mappingHelper = new MappingHelper<>(aspectMap, result);
+        MappingHelper<Dataset> mappingHelper = new MappingHelper<Dataset>(aspectMap, result);
         mappingHelper.mapToResult(DATASET_KEY_ASPECT_NAME, this::mapDatasetKey);
         mappingHelper.mapToResult(DATASET_PROPERTIES_ASPECT_NAME, this::mapDatasetProperties);
-        mappingHelper.mapToResult(DATASET_DEPRECATION_ASPECT_NAME, (dataset, dataMap) ->
-            dataset.setDeprecation(DatasetDeprecationMapper.map(new DatasetDeprecation(dataMap))));
-        mappingHelper.mapToResult(SCHEMA_METADATA_ASPECT_NAME, (dataset, dataMap) ->
-            dataset.setSchema(SchemaMapper.map(new SchemaMetadata(dataMap))));
+        mappingHelper.mapToResult(DATASET_DEPRECATION_ASPECT_NAME, (dataset, dataMap) -> dataset
+                .setDeprecation(DatasetDeprecationMapper.map(new DatasetDeprecation(dataMap))));
+        mappingHelper.mapToResult(SCHEMA_METADATA_ASPECT_NAME,
+                (dataset, dataMap) -> dataset.setSchema(SchemaMapper.map(new SchemaMetadata(dataMap))));
         mappingHelper.mapToResult(EDITABLE_DATASET_PROPERTIES_ASPECT_NAME, this::mapEditableDatasetProperties);
         mappingHelper.mapToResult(VIEW_PROPERTIES_ASPECT_NAME, this::mapViewProperties);
-        mappingHelper.mapToResult(INSTITUTIONAL_MEMORY_ASPECT_NAME, (dataset, dataMap) ->
-            dataset.setInstitutionalMemory(InstitutionalMemoryMapper.map(new InstitutionalMemory(dataMap))));
-        mappingHelper.mapToResult(OWNERSHIP_ASPECT_NAME, (dataset, dataMap) ->
-            dataset.setOwnership(OwnershipMapper.map(new Ownership(dataMap))));
-        mappingHelper.mapToResult(STATUS_ASPECT_NAME, (dataset, dataMap) ->
-            dataset.setStatus(StatusMapper.map(new Status(dataMap))));
+        mappingHelper.mapToResult(INSTITUTIONAL_MEMORY_ASPECT_NAME, (dataset, dataMap) -> dataset
+                .setInstitutionalMemory(InstitutionalMemoryMapper.map(new InstitutionalMemory(dataMap))));
+        mappingHelper.mapToResult(OWNERSHIP_ASPECT_NAME,
+                (dataset, dataMap) -> dataset.setOwnership(OwnershipMapper.map(new Ownership(dataMap))));
+        mappingHelper.mapToResult(STATUS_ASPECT_NAME,
+                (dataset, dataMap) -> dataset.setStatus(StatusMapper.map(new Status(dataMap))));
         mappingHelper.mapToResult(GLOBAL_TAGS_ASPECT_NAME, this::mapGlobalTags);
-        mappingHelper.mapToResult(EDITABLE_SCHEMA_METADATA_ASPECT_NAME, (dataset, dataMap) ->
-            dataset.setEditableSchemaMetadata(EditableSchemaMetadataMapper.map(new EditableSchemaMetadata(dataMap))));
-        mappingHelper.mapToResult(GLOSSARY_TERMS_ASPECT_NAME, (dataset, dataMap) ->
-            dataset.setGlossaryTerms(GlossaryTermsMapper.map(new GlossaryTerms(dataMap))));
+        mappingHelper.mapToResult(EDITABLE_SCHEMA_METADATA_ASPECT_NAME, (dataset, dataMap) -> dataset
+                .setEditableSchemaMetadata(EditableSchemaMetadataMapper.map(new EditableSchemaMetadata(dataMap))));
+        mappingHelper.mapToResult(GLOSSARY_TERMS_ASPECT_NAME,
+                (dataset, dataMap) -> dataset.setGlossaryTerms(GlossaryTermsMapper.map(new GlossaryTerms(dataMap))));
         mappingHelper.mapToResult(CONTAINER_ASPECT_NAME, this::mapContainers);
         mappingHelper.mapToResult(DOMAINS_ASPECT_NAME, this::mapDomains);
-        mappingHelper.mapToResult(DEPRECATION_ASPECT_NAME, (dataset, dataMap) ->
-            dataset.setDeprecation(DeprecationMapper.map(new Deprecation(dataMap))));
-        mappingHelper.mapToResult(DATA_PLATFORM_INSTANCE_ASPECT_NAME, (dataset, dataMap) ->
-            dataset.setDataPlatformInstance(DataPlatformInstanceAspectMapper.map(new DataPlatformInstance(dataMap))));
-        mappingHelper.mapToResult(SIBLINGS_ASPECT_NAME, (dataset, dataMap) ->
-            dataset.setSiblings(SiblingsMapper.map(new Siblings(dataMap))));
+        mappingHelper.mapToResult(DEPRECATION_ASPECT_NAME,
+                (dataset, dataMap) -> dataset.setDeprecation(DeprecationMapper.map(new Deprecation(dataMap))));
+        mappingHelper.mapToResult(DATA_PLATFORM_INSTANCE_ASPECT_NAME, (dataset, dataMap) -> dataset
+                .setDataPlatformInstance(DataPlatformInstanceAspectMapper.map(new DataPlatformInstance(dataMap))));
+        mappingHelper.mapToResult(SIBLINGS_ASPECT_NAME,
+                (dataset, dataMap) -> dataset.setSiblings(SiblingsMapper.map(new Siblings(dataMap))));
+        mappingHelper.mapToResult(UPSTREAM_LINEAGE_ASPECT_NAME, this::mapUpstreamLineage);
 
         return mappingHelper.getResult();
     }
@@ -101,14 +106,13 @@ public class DatasetMapper implements ModelMapper<EntityResponse, Dataset> {
         dataset.setName(gmsKey.getName());
         dataset.setOrigin(FabricType.valueOf(gmsKey.getOrigin().toString()));
         dataset.setPlatform(DataPlatform.builder()
-            .setType(EntityType.DATA_PLATFORM)
-            .setUrn(gmsKey.getPlatform().toString()).build());
+                .setType(EntityType.DATA_PLATFORM)
+                .setUrn(gmsKey.getPlatform().toString()).build());
     }
 
     private void mapDatasetProperties(@Nonnull Dataset dataset, @Nonnull DataMap dataMap) {
         final DatasetProperties gmsProperties = new DatasetProperties(dataMap);
-        final com.linkedin.datahub.graphql.generated.DatasetProperties properties =
-            new com.linkedin.datahub.graphql.generated.DatasetProperties();
+        final com.linkedin.datahub.graphql.generated.DatasetProperties properties = new com.linkedin.datahub.graphql.generated.DatasetProperties();
         properties.setDescription(gmsProperties.getDescription());
         dataset.setDescription(gmsProperties.getDescription());
         properties.setOrigin(dataset.getOrigin());
@@ -138,8 +142,7 @@ public class DatasetMapper implements ModelMapper<EntityResponse, Dataset> {
 
     private void mapViewProperties(@Nonnull Dataset dataset, @Nonnull DataMap dataMap) {
         final ViewProperties properties = new ViewProperties(dataMap);
-        final com.linkedin.datahub.graphql.generated.ViewProperties graphqlProperties =
-            new com.linkedin.datahub.graphql.generated.ViewProperties();
+        final com.linkedin.datahub.graphql.generated.ViewProperties graphqlProperties = new com.linkedin.datahub.graphql.generated.ViewProperties();
         graphqlProperties.setMaterialized(properties.isMaterialized());
         graphqlProperties.setLanguage(properties.getViewLanguage());
         graphqlProperties.setLogic(properties.getViewLogic());
@@ -155,10 +158,10 @@ public class DatasetMapper implements ModelMapper<EntityResponse, Dataset> {
     private void mapContainers(@Nonnull Dataset dataset, @Nonnull DataMap dataMap) {
         final com.linkedin.container.Container gmsContainer = new com.linkedin.container.Container(dataMap);
         dataset.setContainer(Container
-            .builder()
-            .setType(EntityType.CONTAINER)
-            .setUrn(gmsContainer.getContainer().toString())
-            .build());
+                .builder()
+                .setType(EntityType.CONTAINER)
+                .setUrn(gmsContainer.getContainer().toString())
+                .build());
     }
 
     private void mapDomains(@Nonnull Dataset dataset, @Nonnull DataMap dataMap) {
@@ -166,8 +169,86 @@ public class DatasetMapper implements ModelMapper<EntityResponse, Dataset> {
         // Currently we only take the first domain if it exists.
         if (domains.getDomains().size() > 0) {
             dataset.setDomain(Domain.builder()
-                .setType(EntityType.DOMAIN)
-                .setUrn(domains.getDomains().get(0).toString()).build());
+                    .setType(EntityType.DOMAIN)
+                    .setUrn(domains.getDomains().get(0).toString()).build());
         }
+    }
+
+    private void mapUpstreamLineage(@Nonnull Dataset dataset, @Nonnull DataMap dataMap) {
+        UpstreamLineage upstreamLineage = new UpstreamLineage(dataMap);
+        com.linkedin.datahub.graphql.generated.UpstreamLineageProperties upstreamLineageProps = new com.linkedin.datahub.graphql.generated.UpstreamLineageProperties();
+        if (upstreamLineage.hasUpstreams()) {
+            List<com.linkedin.datahub.graphql.generated.UpstreamProperties> upstreamProps = new ArrayList<>();
+            upstreamLineage.getUpstreams().forEach((upstream) -> {
+                com.linkedin.datahub.graphql.generated.UpstreamProperties upstreamProp = new com.linkedin.datahub.graphql.generated.UpstreamProperties();
+                upstreamProp.setDataset(upstream.getDataset().toString());
+                upstreamProp.setAuditStamp(AuditStampMapper.map(upstream.getAuditStamp()));
+                com.linkedin.datahub.graphql.generated.DatasetLineageType lineageType = com.linkedin.datahub.graphql.generated.DatasetLineageType.COPY;
+                switch (upstream.getType()) {
+                    case COPY:
+                        lineageType = com.linkedin.datahub.graphql.generated.DatasetLineageType.COPY;
+                        break;
+                    case TRANSFORMED:
+                        lineageType = com.linkedin.datahub.graphql.generated.DatasetLineageType.TRANSFORMED;
+                        break;
+                    case VIEW:
+                        lineageType = com.linkedin.datahub.graphql.generated.DatasetLineageType.VIEW;
+                        break;
+                    default:
+                        break;
+                }
+                ;
+                upstreamProp.setType(lineageType);
+                upstreamProps.add(upstreamProp);
+            });
+            upstreamLineageProps.setUpstreams(upstreamProps);
+        }
+        if (upstreamLineage.hasFineGrainedLineages()) {
+            List<com.linkedin.datahub.graphql.generated.FineGrainedLineage> fineGranedLineagesProp = new ArrayList<>();
+            upstreamLineage.getFineGrainedLineages().forEach((fgl) -> {
+                com.linkedin.datahub.graphql.generated.FineGrainedLineage lineageProp = new com.linkedin.datahub.graphql.generated.FineGrainedLineage();
+                List<String> upstreams = new ArrayList<>();
+                fgl.getUpstreams().forEach((ups) -> {
+                    upstreams.add(ups.toString());
+                });
+                lineageProp.setUpstreams(upstreams);
+                List<String> downstreams = new ArrayList<>();
+                fgl.getDownstreams().forEach((ups) -> {
+                    downstreams.add(ups.toString());
+                });
+                lineageProp.setDownstreams(downstreams);
+                com.linkedin.datahub.graphql.generated.FineGrainedLineageUpstreamType upstreamType = com.linkedin.datahub.graphql.generated.FineGrainedLineageUpstreamType.NONE;
+                switch (fgl.getUpstreamType()) {
+                    case DATASET:
+                        upstreamType = com.linkedin.datahub.graphql.generated.FineGrainedLineageUpstreamType.DATASET;
+                        break;
+                    case FIELD_SET:
+                        upstreamType = com.linkedin.datahub.graphql.generated.FineGrainedLineageUpstreamType.FIELD_SET;
+                        break;
+                    default:
+                        break;
+                }
+                lineageProp.setUpstreamType(upstreamType);
+                com.linkedin.datahub.graphql.generated.FineGrainedLineageDownstreamType downstreamType = com.linkedin.datahub.graphql.generated.FineGrainedLineageDownstreamType.FIELD;
+                switch (fgl.getDownstreamType()) {
+                    case FIELD:
+                        downstreamType = com.linkedin.datahub.graphql.generated.FineGrainedLineageDownstreamType.FIELD;
+                        break;
+                    case FIELD_SET:
+                        downstreamType = com.linkedin.datahub.graphql.generated.FineGrainedLineageDownstreamType.FIELD_SET;
+                        break;
+                    default:
+                        break;
+                }
+                lineageProp.setDownstreamType(downstreamType);
+                if (fgl.hasTransformOperation()) {
+                    lineageProp.setTransformOperation(fgl.getTransformOperation());
+                }
+                lineageProp.setConfidenceScore(fgl.getConfidenceScore());
+                fineGranedLineagesProp.add(lineageProp);
+            });
+            upstreamLineageProps.setFineGrainedLineages(fineGranedLineagesProp);
+        }
+        dataset.setUpstreamLineage(upstreamLineageProps);
     }
 }

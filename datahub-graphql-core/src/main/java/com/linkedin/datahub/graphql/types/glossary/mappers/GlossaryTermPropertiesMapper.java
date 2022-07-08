@@ -1,7 +1,6 @@
 package com.linkedin.datahub.graphql.types.glossary.mappers;
 
 import com.linkedin.datahub.graphql.generated.GlossaryTermProperties;
-import com.linkedin.glossary.GlossaryTermLOV;
 
 import java.util.ArrayList;
 import java.util.List;
