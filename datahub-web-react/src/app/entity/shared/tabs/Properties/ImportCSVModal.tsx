@@ -5,7 +5,7 @@ import { message, Button, Modal } from 'antd';
 // import { StringMapEntryInput } from '../../../../../types.generated';
 import { EntityType } from '../../../../../types.generated';
 // import { useEntityRegistry } from '../../../../useEntityRegistry';
-// import { useEntityData } from '../../EntityContext';
+import { useRefetch } from '../../EntityContext';
 import PropertiesTermsTable, { PropertyDataType } from './PropertiesTermsTable';
 import { useGetSearchResultsForMultipleQuery } from '../../../../../graphql/search.generated';
 // import analytics, { EventType, EntityActionType } from '../../../../analytics';
@@ -17,26 +17,28 @@ export default function ImportCSVModal(props: Props) {
     const { onClose } = props;
     const customPropsInit: PropertyDataType[] = [];
     const [dataSource, setDataSource] = useState(customPropsInit);
-    const [createButtonDisabled, setCreateButtonDisabled] = useState(true);
+    const [createButtonDisabled, setCreateButtonDisabled] = useState(false);
+    const refetch = useRefetch();
 
     function CreateGlossaryFromCSV() {
         message.loading({ content: 'Saving new term groups and terms...' });
-        setCreateButtonDisabled(false);
-        const query = '';
+        setCreateButtonDisabled(true);
+        const tmpQuery = '';
         const { data } = useGetSearchResultsForMultipleQuery({
             variables: {
                 input: {
                     types: [EntityType.GlossaryTerm, EntityType.GlossaryNode],
-                    query,
+                    query: tmpQuery,
                     start: 0,
                     count: 500,
                 },
             },
-            skip: !query,
+            skip: !tmpQuery,
         });
         console.log('Sear all data: ', data);
         message.destroy();
-        setCreateButtonDisabled(true);
+        setCreateButtonDisabled(false);
+        refetch?.();
     }
 
     return (
