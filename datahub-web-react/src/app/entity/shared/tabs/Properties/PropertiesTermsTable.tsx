@@ -105,8 +105,10 @@ const EditableCell: React.FC<EditableCellProps> = (props: EditableCellProps) => 
 
 export interface PropertyDataType {
     key: React.Key;
-    name: string;
-    value: string;
+    term_gourp_1: string;
+    term_gourp_2: string;
+    term_gourp_3: string;
+    term: string;
 }
 
 type EditableTableProps = TableProps<PropertyDataType>;
@@ -120,9 +122,7 @@ type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
 
 export default function PropertiesTermsTable(props: Props) {
     const { dataSource, setDataSource } = props;
-
     const [count, setCount] = useState(dataSource.length);
-
     const handleDelete = (key: React.Key) => {
         const newData = dataSource.filter((item) => item.key !== key);
         setDataSource(newData);
@@ -130,14 +130,27 @@ export default function PropertiesTermsTable(props: Props) {
 
     const defaultColumns: (ColumnTypes[number] & { editable?: boolean; dataIndex: string })[] = [
         {
-            title: 'Name',
-            dataIndex: 'name',
-            width: '30%',
+            title: 'Term group 1',
+            dataIndex: 'term_gourp_1',
+            width: '20%',
             editable: true,
         },
         {
-            title: 'Value',
-            dataIndex: 'value',
+            title: 'Term group 2',
+            dataIndex: 'term_gourp_2',
+            width: '20%',
+            editable: true,
+        },
+        {
+            title: 'Term group 3',
+            dataIndex: 'term_gourp_3',
+            width: '20%',
+            editable: true,
+        },
+        {
+            title: 'Term',
+            dataIndex: 'term',
+            width: '20%',
             editable: true,
         },
         {
@@ -155,8 +168,10 @@ export default function PropertiesTermsTable(props: Props) {
     const handleAdd = () => {
         const newData: PropertyDataType = {
             key: count,
-            name: 'Add a key',
-            value: 'Add some value',
+            term_gourp_1: 'Add A Term group 1',
+            term_gourp_2: 'Add A Term group 2',
+            term_gourp_3: 'Add A Term group 3',
+            term: 'Add A Term',
         };
         setDataSource([...dataSource, newData]);
         setCount(count + 1);
