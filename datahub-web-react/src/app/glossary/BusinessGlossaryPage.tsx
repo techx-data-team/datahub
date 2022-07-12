@@ -12,7 +12,7 @@ import GlossarySearch from './GlossarySearch';
 import { ProfileSidebarResizer } from '../entity/shared/containers/profile/sidebar/ProfileSidebarResizer';
 import EmptyGlossarySection from './EmptyGlossarySection';
 import CreateGlossaryEntityModal from '../entity/shared/EntityDropdown/CreateGlossaryEntityModal';
-import ImportCSVModal from '../entity/shared/EntityDropdown/ImportCSVModal';
+import ImportCSVModal from '../entity/shared/tabs/Properties/ImportCSVModal';
 import { EntityType } from '../../types.generated';
 
 export const HeaderWrapper = styled(TabToolbar)`
@@ -104,13 +104,7 @@ function BusinessGlossaryPage() {
                     refetchData={refetchForNodes}
                 />
             )}
-            {isImportCSVModalVisible && (
-                <ImportCSVModal
-                    entityType={EntityType.GlossaryTerm}
-                    onClose={() => setImportCSVModalVisible(false)}
-                    refetchData={refetchForTerms}
-                />
-            )}
+            {isImportCSVModalVisible && <ImportCSVModal onClose={() => setImportCSVModalVisible(false)} />}
         </>
     );
 }
