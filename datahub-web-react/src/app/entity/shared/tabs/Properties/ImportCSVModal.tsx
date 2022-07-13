@@ -27,13 +27,14 @@ function ImportCSVModal(props: Props) {
     const [importButtonDisabled, setimportButtonDisabled] = useState(false);
     const [searchResults, setSearchResults] = useState<any[]>([]);
     // const refetch = useRefetch();
+    // const entityRegistry = useEntityRegistry();
     const [createGlossaryTermMutation] = useCreateGlossaryTermMutation();
     const [createGlossaryNodeMutation] = useCreateGlossaryNodeMutation();
 
-    function getUUID(value: str) {
+    function getUUID(value: string) {
         const md5Hash = MD5(value).toString();
         const uuid = md5ToUuid(md5Hash);
-        return uuid;
+        return String(uuid);
     }
 
     const { data } = useGetSearchResultsForMultipleQuery({
@@ -53,7 +54,7 @@ function ImportCSVModal(props: Props) {
         if (typeof temp === 'object') setSearchResults(temp);
     }
 
-    function createGlossaryEntity(type: entityType, inputValue: Object) {
+    function createGlossaryEntity(entityType: EntityType, inputValue: any) {
         const mutation =
             entityType === EntityType.GlossaryTerm ? createGlossaryTermMutation : createGlossaryNodeMutation;
 
@@ -76,7 +77,7 @@ function ImportCSVModal(props: Props) {
                 });
                 setTimeout(() => {
                     message.success({
-                        content: `Created ${entityRegistry.getEntityName(entityType)}!`,
+                        content: `Created ${inputValue.name}!`,
                         duration: 2,
                     });
                 }, 2000);
@@ -84,59 +85,67 @@ function ImportCSVModal(props: Props) {
     }
 
     function importGlossaryEntity() {
+        const dict = {
+            GLOSSARY_TERM: {},
+            GLOSSARY_NODE: {},
+        };
+        const glossaryInsert = {
+            GLOSSARY_TERM: {},
+            GLOSSARY_NODE: {},
+        };
         setimportButtonDisabled(true);
         message.loading({ content: 'Saving new glossarys and terms...' });
         console.log('searchResults: ', searchResults);
-        var dict = {
-            GLOSSARY_TERM: {},
-            GLOSSARY_NODE: {},
-        };
+
         searchResults.forEach((e) => {
             if (e.entity.type === 'GLOSSARY_TERM') {
-                dict['GLOSSARY_TERM'][e.entity.properties.name] = e.entity.urn;
+                dict.GLOSSARY_TERM[e.entity.properties.name] = e.entity.urn;
             } else if (e.entity.type === 'GLOSSARY_NODE') {
-                dict['GLOSSARY_NODE'][e.entity.properties.name] = e.entity.urn;
+                dict.GLOSSARY_NODE[e.entity.properties.name] = e.entity.urn;
             }
         });
-        var glossaryInsert = {
-            GLOSSARY_TERM: {},
-            GLOSSARY_NODE: {},
-        };
         dataSource.forEach((e) => {
             if (e.term_gourp_1 && e.term_gourp_2 && e.term_gourp_3) {
-                e['term_gourp_1_id'] = getUUID(e.term_gourp_1);
-                e['term_gourp_2_id'] = getUUID(e.term_gourp_1 + e.term_gourp_2);
-                e['term_gourp_3_id'] = getUUID(e.term_gourp_1 + e.term_gourp_2 + e.term_gourp_3);
-                e['term_id'] = getUUID(e.term_gourp_1 + e.term_gourp_2 + e.term_gourp_3 + e.term);
-                glossaryInsert['GLOSSARY_NODE'][e['term_gourp_1_id']] = {
-                    id: e['term_gourp_1_id'],
-                    name: e['term_gourp_1'],
+                const termGourp1Id = getUUID(e.term_gourp_1);
+                const termGourp2Id = getUUID(e.term_gourp_1 + e.term_gourp_2);
+                const termGourp3Id = getUUID(e.term_gourp_1 + e.term_gourp_2 + e.term_gourp_3);
+                const termId = getUUID(e.term_gourp_1 + e.term_gourp_2 + e.term_gourp_3 + e.term);
+                glossaryInsert.GLOSSARY_NODE[termGourp1Id] = {
+                    id: termGourp1Id,
+                    name: e.term_gourp_1,
                     parentNode: null,
                 };
-                glossaryInsert['GLOSSARY_NODE'][e['term_gourp_2_id']] = {
-                    id: e['term_gourp_2_id'],
-                    name: e['term_gourp_2'],
-                    parentNode: 'urn:li:glossaryNode:' + e['term_gourp_1_id'],
+                glossaryInsert.GLOSSARY_NODE[termGourp2Id] = {
+                    id: termGourp2Id,
+                    name: e.term_gourp_2,
+                    parentNode: `urn:li:glossaryNode:${termGourp1Id}`,
                 };
-                glossaryInsert['GLOSSARY_NODE'][e['term_gourp_3_id']] = {
-                    id: e['term_gourp_3_id'],
-                    name: e['term_gourp_3'],
-                    parentNode: 'urn:li:glossaryNode:' + e['term_gourp_2_id'],
+                glossaryInsert.GLOSSARY_NODE[termGourp3Id] = {
+                    id: termGourp3Id,
+                    name: e.term_gourp_3,
+                    parentNode: `urn:li:glossaryNode:${termGourp2Id}`,
                 };
-                glossaryInsert['GLOSSARY_TERM'][e['term_id']] = {
-                    id: e['term_id'],
-                    name: e['term'],
-                    parentNode: 'urn:li:glossaryNode:' + e['term_gourp_3_id'],
+                glossaryInsert.GLOSSARY_TERM[termId] = {
+                    id: termId,
+                    name: e.term,
+                    parentNode: `urn:li:glossaryNode:${termGourp3Id}`,
                 };
             }
         });
-        Object.entries(glossaryInsert['GLOSSARY_NODE']).forEach(([k, v]) => {
-            createGlossaryEntity(EntityType.GlossaryTerm, v);
-        });
-
-        Object.entries(glossaryInsert['GLOSSARY_TERM']).forEach(([k, v]) => {
-            createGlossaryEntity(EntityType.GlossaryNode, v);
-        });
+        // for (const key in glossaryInsert.GLOSSARY_NODE.keys()) {
+        //     const value = glossaryInsert.GLOSSARY_NODE[key];
+        //     createGlossaryEntity(EntityType.GlossaryNode, value);
+        // }
+        Object.values(glossaryInsert.GLOSSARY_NODE).forEach((value) =>
+            createGlossaryEntity(EntityType.GlossaryNode, value),
+        );
+        // for (const key in glossaryInsert.GLOSSARY_TERM.keys()) {
+        //     const value = glossaryInsert.GLOSSARY_TERM[key];
+        //     createGlossaryEntity(EntityType.GlossaryTerm, value);
+        // }
+        Object.values(glossaryInsert.GLOSSARY_TERM).forEach((value) =>
+            createGlossaryEntity(EntityType.GlossaryTerm, value),
+        );
         setimportButtonDisabled(false);
         // onClose();
     }
