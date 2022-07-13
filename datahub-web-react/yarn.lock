@@ -6122,6 +6122,11 @@ crypto-browserify@^3.11.0:
     randombytes "^2.0.0"
     randomfill "^1.0.3"
 
+crypto-js@4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/crypto-js/-/crypto-js-4.1.1.tgz#9e485bcf03521041bd85844786b83fb7619736cf"
+  integrity sha512-o2JlM7ydqd3Qk9CA0L4NL6mTzU2sdx96a+oOfPu8Mkl/PK51vSyoi8/rQ8NknZtk44vq15lmhAj9CIAGwgeWKw==
+
 crypto-random-string@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/crypto-random-string/-/crypto-random-string-1.0.0.tgz#a230f64f568310e1498009940790ec99545bca7e"
@@ -11099,6 +11104,18 @@ math-expression-evaluator@^1.2.14:
   version "1.3.7"
   resolved "https://registry.yarnpkg.com/math-expression-evaluator/-/math-expression-evaluator-1.3.7.tgz#1b62225db86af06f7ea1fd9576a34af605a5b253"
   integrity sha512-nrbaifCl42w37hYd6oRLvoymFK42tWB+WQTMFtksDGQMi5GvlJwnz/CsS30FFAISFLtX+A0csJ0xLiuuyyec7w==
+
+md5-nodejs@^1.0.2:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/md5-nodejs/-/md5-nodejs-1.0.3.tgz#cc400ebb79aeb73f0bc3586b09cc84d0a0414d4c"
+  integrity sha512-kfMOjXroDkOyb9eAsHhAPAK/RItM7mwt6miBtpQ80rDRJjz2t5YTu13Jk/YjfWqI2UuuT5dXXgKalMMiIzkLUA==
+
+md5-to-uuid@1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/md5-to-uuid/-/md5-to-uuid-1.0.4.tgz#0e76ce4944fcf34daec15e515cc4392ff881dcfb"
+  integrity sha512-dwHaRI1VK3f7y5T4PRvermhrSez6x/K//Ls0YHKr2tcOFzM1V5jqzgZ6wp4WXceN1HB5Ovy2IutU7jUuh/Y7GQ==
+  dependencies:
+    md5-nodejs "^1.0.2"
 
 md5.js@^1.3.4:
   version "1.3.5"
