@@ -20,21 +20,25 @@ function ImportCSVModal(props: Props) {
     const customPropsInit: PropertyDataType[] = [];
     const [dataSource, setDataSource] = useState(customPropsInit);
     const [importButtonDisabled, setimportButtonDisabled] = useState(false);
+    const [searchResults, setSearchResults] = useState<any[]>([]);
     // const refetch = useRefetch();
 
-    const queryTmp = '';
     const { data } = useGetSearchResultsForMultipleQuery({
         variables: {
             input: {
                 types: [EntityType.GlossaryTerm, EntityType.GlossaryNode],
-                query: queryTmp,
+                query: '',
                 start: 0,
                 count: 50,
             },
         },
-        skip: !importButtonDisabled,
+        skip: !(dataSource.length === 0),
     });
-    const searchResults = data?.searchAcrossEntities?.searchResults;
+
+    if (searchResults.length === 0) {
+        const temp = data?.searchAcrossEntities?.searchResults;
+        if (typeof temp === 'object') setSearchResults(temp);
+    }
 
     console.log('searchResults: ', searchResults);
     console.log('dataSource', dataSource);
@@ -42,11 +46,11 @@ function ImportCSVModal(props: Props) {
     function importGlossaryEntity() {
         setimportButtonDisabled(true);
         message.loading({ content: 'Saving new glossarys and terms...' });
-        var dict = {
-            "GLOSSARY_TERM": {},
-            "GLOSSARY_NODE": {}
-        }
-        
+        console.log('searchResults: ', searchResults);
+        // var dict = {
+        //     "GLOSSARY_TERM": {},
+        //     "GLOSSARY_NODE": {}
+        // }
         setimportButtonDisabled(false);
         onClose();
     }
