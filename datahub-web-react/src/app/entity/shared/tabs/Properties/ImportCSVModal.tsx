@@ -5,40 +5,50 @@ import { message, Button, Modal } from 'antd';
 // import { StringMapEntryInput } from '../../../../../types.generated';
 import { EntityType } from '../../../../../types.generated';
 // import { useEntityRegistry } from '../../../../useEntityRegistry';
-import { useRefetch } from '../../EntityContext';
+// import { useRefetch } from '../../EntityContext';
 import PropertiesTermsTable, { PropertyDataType } from './PropertiesTermsTable';
 import { useGetSearchResultsForMultipleQuery } from '../../../../../graphql/search.generated';
+// import { useGetGlossaryTermQuery } from '../../../../../graphql/glossaryTerm.generated';
+
 // import analytics, { EventType, EntityActionType } from '../../../../analytics';
 interface Props {
     onClose: () => void;
 }
 
-export default function ImportCSVModal(props: Props) {
+function ImportCSVModal(props: Props) {
     const { onClose } = props;
     const customPropsInit: PropertyDataType[] = [];
     const [dataSource, setDataSource] = useState(customPropsInit);
-    const [createButtonDisabled, setCreateButtonDisabled] = useState(false);
-    const refetch = useRefetch();
+    const [importButtonDisabled, setimportButtonDisabled] = useState(false);
+    // const refetch = useRefetch();
 
-    function CreateGlossaryFromCSV() {
-        message.loading({ content: 'Saving new term groups and terms...' });
-        setCreateButtonDisabled(true);
-        const tmpQuery = '';
-        const { data } = useGetSearchResultsForMultipleQuery({
-            variables: {
-                input: {
-                    types: [EntityType.GlossaryTerm, EntityType.GlossaryNode],
-                    query: tmpQuery,
-                    start: 0,
-                    count: 500,
-                },
+    const queryTmp = '';
+    const { data } = useGetSearchResultsForMultipleQuery({
+        variables: {
+            input: {
+                types: [EntityType.GlossaryTerm, EntityType.GlossaryNode],
+                query: queryTmp,
+                start: 0,
+                count: 50,
             },
-            skip: !tmpQuery,
-        });
-        console.log('Sear all data: ', data);
-        message.destroy();
-        setCreateButtonDisabled(false);
-        refetch?.();
+        },
+        skip: !importButtonDisabled,
+    });
+    const searchResults = data?.searchAcrossEntities?.searchResults;
+
+    console.log('searchResults: ', searchResults);
+    console.log('dataSource', dataSource);
+
+    function importGlossaryEntity() {
+        setimportButtonDisabled(true);
+        message.loading({ content: 'Saving new glossarys and terms...' });
+        var dict = {
+            "GLOSSARY_TERM": {},
+            "GLOSSARY_NODE": {}
+        }
+        
+        setimportButtonDisabled(false);
+        onClose();
     }
 
     return (
@@ -52,8 +62,8 @@ export default function ImportCSVModal(props: Props) {
                     <Button onClick={onClose} type="text">
                         Cancel
                     </Button>
-                    <Button onClick={CreateGlossaryFromCSV} disabled={createButtonDisabled}>
-                        Create
+                    <Button onClick={importGlossaryEntity} disabled={importButtonDisabled}>
+                        Import
                     </Button>
                 </>
             }
@@ -62,3 +72,4 @@ export default function ImportCSVModal(props: Props) {
         </Modal>
     );
 }
+export default ImportCSVModal;
