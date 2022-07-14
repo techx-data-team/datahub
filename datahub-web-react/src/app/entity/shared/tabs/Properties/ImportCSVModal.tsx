@@ -107,47 +107,59 @@ function ImportCSVModal(props: Props) {
         });
         console.log('dict: ', dict);
         dataSource.forEach((e) => {
+            let preParentNode: any = null;
             console.log('e: ', e);
-            if (e.term_gourp_1 && e.term_gourp_2 && e.term_gourp_3 && e.term) {
-                const termGourp1Id = getUUID(e.term_gourp_1);
-                const termGourp2Id = getUUID(e.term_gourp_1 + e.term_gourp_2);
-                const termGourp3Id = getUUID(e.term_gourp_1 + e.term_gourp_2 + e.term_gourp_3);
-                const termId = getUUID(e.term_gourp_1 + e.term_gourp_2 + e.term_gourp_3 + e.term);
+            const termGourp1Id = getUUID(e.term_gourp_1);
+            const termGourp2Id = getUUID(e.term_gourp_1 + e.term_gourp_2);
+            const termGourp3Id = getUUID(e.term_gourp_1 + e.term_gourp_2 + e.term_gourp_3);
+            const termId = getUUID(e.term_gourp_1 + e.term_gourp_2 + e.term_gourp_3 + e.term);
+            if (e.term_gourp_1) {
                 if (!(`urn:li:glossaryNode:${termGourp1Id}` in dict.GLOSSARY_NODE)) {
                     console.log(`urn:li:glossaryNode:${termGourp1Id}`);
                     glossaryInsert.GLOSSARY_NODE[termGourp1Id] = {
                         id: termGourp1Id,
                         name: e.term_gourp_1,
-                        parentNode: null,
+                        parentNode: preParentNode,
                     };
                 } else {
                     console.log(`errror: urn:li:glossaryNode:${termGourp1Id}`);
                     message.info(`${e.term_gourp_1} exists in glossary terms!`);
                 }
+                preParentNode = `urn:li:glossaryNode:${termGourp1Id}`;
+            }
+
+            if (e.term_gourp_2) {
                 if (!(`urn:li:glossaryNode:${termGourp2Id}` in dict.GLOSSARY_NODE)) {
                     glossaryInsert.GLOSSARY_NODE[termGourp2Id] = {
                         id: termGourp2Id,
                         name: e.term_gourp_2,
-                        parentNode: `urn:li:glossaryNode:${termGourp1Id}`,
+                        parentNode: preParentNode,
                     };
                 } else {
                     message.info(`${e.term_gourp_2} exists in glossary terms!`);
                 }
+                preParentNode = `urn:li:glossaryNode:${termGourp2Id}`;
+            }
+
+            if (e.term_gourp_3) {
                 if (!(`urn:li:glossaryNode:${termGourp3Id}` in dict.GLOSSARY_NODE)) {
                     glossaryInsert.GLOSSARY_NODE[termGourp3Id] = {
                         id: termGourp3Id,
                         name: e.term_gourp_3,
-                        parentNode: `urn:li:glossaryNode:${termGourp2Id}`,
+                        parentNode: preParentNode,
                     };
                 } else {
                     message.info(`${e.term_gourp_3} exists in glossary terms!`);
                 }
+                preParentNode = `urn:li:glossaryNode:${termGourp3Id}`;
+            }
+            if (e.term) {
                 if (!(`urn:li:glossaryTerm:${termId}` in dict.GLOSSARY_TERM)) {
                     console.log(`urn:li:glossaryTerm:${termId}`);
                     glossaryInsert.GLOSSARY_TERM[termId] = {
                         id: termId,
                         name: e.term,
-                        parentNode: `urn:li:glossaryNode:${termGourp3Id}`,
+                        parentNode: preParentNode,
                     };
                 } else {
                     console.log(`error: urn:li:glossaryTerm:${termId}`);
@@ -170,7 +182,7 @@ function ImportCSVModal(props: Props) {
             createGlossaryEntity(EntityType.GlossaryTerm, value),
         );
         setimportButtonDisabled(false);
-        // onClose();
+        onClose();
     }
 
     return (
