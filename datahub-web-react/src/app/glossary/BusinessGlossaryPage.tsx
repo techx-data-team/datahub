@@ -104,7 +104,9 @@ function BusinessGlossaryPage() {
                     refetchData={refetchForNodes}
                 />
             )}
-            {isImportCSVModalVisible && <ImportCSVModal onClose={() => setImportCSVModalVisible(false)} />}
+            {isImportCSVModalVisible && (
+                <ImportCSVModal onClose={() => setImportCSVModalVisible(false)} refetchData={refetchForNodes} />
+            )}
         </>
     );
 }

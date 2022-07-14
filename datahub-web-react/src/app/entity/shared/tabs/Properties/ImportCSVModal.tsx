@@ -7,7 +7,7 @@ import md5ToUuid from 'md5-to-uuid';
 // import { StringMapEntryInput } from '../../../../../types.generated';
 import { EntityType } from '../../../../../types.generated';
 // import { useEntityRegistry } from '../../../../useEntityRegistry';
-// import { useRefetch } from '../../EntityContext';
+import { useRefetch } from '../../EntityContext';
 import PropertiesTermsTable, { PropertyDataType } from './PropertiesTermsTable';
 import { useGetSearchResultsForMultipleQuery } from '../../../../../graphql/search.generated';
 import {
@@ -18,16 +18,18 @@ import {
 // import analytics, { EventType, EntityActionType } from '../../../../analytics';
 interface Props {
     onClose: () => void;
+    refetchData?: () => void;
 }
 
 function ImportCSVModal(props: Props) {
-    const { onClose } = props;
+    const { onClose, refetchData } = props;
     const customPropsInit: PropertyDataType[] = [];
     const [dataSource, setDataSource] = useState(customPropsInit);
     const [importButtonDisabled, setimportButtonDisabled] = useState(false);
     const [searchResults, setSearchResults] = useState<any[]>([]);
     // const refetch = useRefetch();
     // const entityRegistry = useEntityRegistry();
+    const refetch = useRefetch();
     const [createGlossaryTermMutation] = useCreateGlossaryTermMutation();
     const [createGlossaryNodeMutation] = useCreateGlossaryNodeMutation();
 
@@ -84,7 +86,7 @@ function ImportCSVModal(props: Props) {
             });
     }
 
-    function importGlossaryEntity() {
+    async function importGlossaryEntity() {
         const dict = {
             GLOSSARY_TERM: {},
             GLOSSARY_NODE: {},
@@ -171,16 +173,27 @@ function ImportCSVModal(props: Props) {
         //     const value = glossaryInsert.GLOSSARY_NODE[key];
         //     createGlossaryEntity(EntityType.GlossaryNode, value);
         // }
-        Object.values(glossaryInsert.GLOSSARY_NODE).forEach((value) =>
+        await Object.values(glossaryInsert.GLOSSARY_NODE).forEach((value) =>
             createGlossaryEntity(EntityType.GlossaryNode, value),
         );
         // for (const key in glossaryInsert.GLOSSARY_TERM.keys()) {
         //     const value = glossaryInsert.GLOSSARY_TERM[key];
         //     createGlossaryEntity(EntityType.GlossaryTerm, value);
         // }
-        Object.values(glossaryInsert.GLOSSARY_TERM).forEach((value) =>
+        await Object.values(glossaryInsert.GLOSSARY_TERM).forEach((value) =>
             createGlossaryEntity(EntityType.GlossaryTerm, value),
         );
+        console.log('IMPORT DONE');
+        setTimeout(() => {
+            message.success({
+                content: `Created all glossary terms!`,
+                duration: 2,
+            });
+            refetch();
+            if (refetchData) {
+                refetchData();
+            }
+        }, 2000);
         setimportButtonDisabled(false);
         onClose();
     }
