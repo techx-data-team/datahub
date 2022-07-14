@@ -97,8 +97,6 @@ function ImportCSVModal(props: Props) {
         };
         setimportButtonDisabled(true);
         message.loading({ content: 'Saving new glossarys and terms...' });
-        console.log('searchResults: ', searchResults);
-        console.log('datasource: ', dataSource);
 
         searchResults.forEach((e) => {
             if (e.entity.type === 'GLOSSARY_TERM') {
@@ -107,24 +105,20 @@ function ImportCSVModal(props: Props) {
                 dict.GLOSSARY_NODE[e.entity.urn] = e.entity.properties.name;
             }
         });
-        console.log('dict: ', dict);
         dataSource.forEach((e) => {
             let preParentNode: any = null;
-            console.log('e: ', e);
             const termGourp1Id = getUUID(e.term_gourp_1);
             const termGourp2Id = getUUID(e.term_gourp_1 + e.term_gourp_2);
             const termGourp3Id = getUUID(e.term_gourp_1 + e.term_gourp_2 + e.term_gourp_3);
             const termId = getUUID(e.term_gourp_1 + e.term_gourp_2 + e.term_gourp_3 + e.term);
             if (e.term_gourp_1) {
                 if (!(`urn:li:glossaryNode:${termGourp1Id}` in dict.GLOSSARY_NODE)) {
-                    console.log(`urn:li:glossaryNode:${termGourp1Id}`);
                     glossaryInsert.GLOSSARY_NODE[termGourp1Id] = {
                         id: termGourp1Id,
                         name: e.term_gourp_1,
                         parentNode: preParentNode,
                     };
                 } else {
-                    console.log(`errror: urn:li:glossaryNode:${termGourp1Id}`);
                     message.info(`${e.term_gourp_1} exists in glossary terms!`);
                 }
                 preParentNode = `urn:li:glossaryNode:${termGourp1Id}`;
@@ -157,33 +151,22 @@ function ImportCSVModal(props: Props) {
             }
             if (e.term) {
                 if (!(`urn:li:glossaryTerm:${termId}` in dict.GLOSSARY_TERM)) {
-                    console.log(`urn:li:glossaryTerm:${termId}`);
                     glossaryInsert.GLOSSARY_TERM[termId] = {
                         id: termId,
                         name: e.term,
                         parentNode: preParentNode,
                     };
                 } else {
-                    console.log(`error: urn:li:glossaryTerm:${termId}`);
                     message.info(`${e.term} exists in glossary terms!`);
                 }
             }
         });
-        // for (const key in glossaryInsert.GLOSSARY_NODE.keys()) {
-        //     const value = glossaryInsert.GLOSSARY_NODE[key];
-        //     createGlossaryEntity(EntityType.GlossaryNode, value);
-        // }
         await Object.values(glossaryInsert.GLOSSARY_NODE).forEach((value) =>
             createGlossaryEntity(EntityType.GlossaryNode, value),
         );
-        // for (const key in glossaryInsert.GLOSSARY_TERM.keys()) {
-        //     const value = glossaryInsert.GLOSSARY_TERM[key];
-        //     createGlossaryEntity(EntityType.GlossaryTerm, value);
-        // }
         await Object.values(glossaryInsert.GLOSSARY_TERM).forEach((value) =>
             createGlossaryEntity(EntityType.GlossaryTerm, value),
         );
-        console.log('IMPORT DONE');
         setTimeout(() => {
             message.success({
                 content: `Created all glossary terms!`,
