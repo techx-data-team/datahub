@@ -43,7 +43,7 @@ function ImportCSVModal(props: Props) {
                 types: [EntityType.GlossaryTerm, EntityType.GlossaryNode],
                 query: '',
                 start: 0,
-                count: 50,
+                count: 5000,
             },
         },
         skip: !(dataSource.length === 0),
@@ -72,7 +72,7 @@ function ImportCSVModal(props: Props) {
             })
             .finally(() => {
                 message.loading({
-                    content: 'Updating ',
+                    content: 'Updating...',
                     duration: 2,
                 });
                 setTimeout(() => {
@@ -96,40 +96,63 @@ function ImportCSVModal(props: Props) {
         setimportButtonDisabled(true);
         message.loading({ content: 'Saving new glossarys and terms...' });
         console.log('searchResults: ', searchResults);
+        console.log('datasource: ', dataSource);
 
         searchResults.forEach((e) => {
             if (e.entity.type === 'GLOSSARY_TERM') {
-                dict.GLOSSARY_TERM[e.entity.properties.name] = e.entity.urn;
+                dict.GLOSSARY_TERM[e.entity.urn] = e.entity.properties.name;
             } else if (e.entity.type === 'GLOSSARY_NODE') {
-                dict.GLOSSARY_NODE[e.entity.properties.name] = e.entity.urn;
+                dict.GLOSSARY_NODE[e.entity.urn] = e.entity.properties.name;
             }
         });
+        console.log('dict: ', dict);
         dataSource.forEach((e) => {
-            if (e.term_gourp_1 && e.term_gourp_2 && e.term_gourp_3) {
+            console.log('e: ', e);
+            if (e.term_gourp_1 && e.term_gourp_2 && e.term_gourp_3 && e.term) {
                 const termGourp1Id = getUUID(e.term_gourp_1);
                 const termGourp2Id = getUUID(e.term_gourp_1 + e.term_gourp_2);
                 const termGourp3Id = getUUID(e.term_gourp_1 + e.term_gourp_2 + e.term_gourp_3);
                 const termId = getUUID(e.term_gourp_1 + e.term_gourp_2 + e.term_gourp_3 + e.term);
-                glossaryInsert.GLOSSARY_NODE[termGourp1Id] = {
-                    id: termGourp1Id,
-                    name: e.term_gourp_1,
-                    parentNode: null,
-                };
-                glossaryInsert.GLOSSARY_NODE[termGourp2Id] = {
-                    id: termGourp2Id,
-                    name: e.term_gourp_2,
-                    parentNode: `urn:li:glossaryNode:${termGourp1Id}`,
-                };
-                glossaryInsert.GLOSSARY_NODE[termGourp3Id] = {
-                    id: termGourp3Id,
-                    name: e.term_gourp_3,
-                    parentNode: `urn:li:glossaryNode:${termGourp2Id}`,
-                };
-                glossaryInsert.GLOSSARY_TERM[termId] = {
-                    id: termId,
-                    name: e.term,
-                    parentNode: `urn:li:glossaryNode:${termGourp3Id}`,
-                };
+                if (!(`urn:li:glossaryNode:${termGourp1Id}` in dict.GLOSSARY_NODE)) {
+                    console.log(`urn:li:glossaryNode:${termGourp1Id}`);
+                    glossaryInsert.GLOSSARY_NODE[termGourp1Id] = {
+                        id: termGourp1Id,
+                        name: e.term_gourp_1,
+                        parentNode: null,
+                    };
+                } else {
+                    console.log(`errror: urn:li:glossaryNode:${termGourp1Id}`);
+                    message.info(`${e.term_gourp_1} exists in glossary terms!`);
+                }
+                if (!(`urn:li:glossaryNode:${termGourp2Id}` in dict.GLOSSARY_NODE)) {
+                    glossaryInsert.GLOSSARY_NODE[termGourp2Id] = {
+                        id: termGourp2Id,
+                        name: e.term_gourp_2,
+                        parentNode: `urn:li:glossaryNode:${termGourp1Id}`,
+                    };
+                } else {
+                    message.info(`${e.term_gourp_2} exists in glossary terms!`);
+                }
+                if (!(`urn:li:glossaryNode:${termGourp3Id}` in dict.GLOSSARY_NODE)) {
+                    glossaryInsert.GLOSSARY_NODE[termGourp3Id] = {
+                        id: termGourp3Id,
+                        name: e.term_gourp_3,
+                        parentNode: `urn:li:glossaryNode:${termGourp2Id}`,
+                    };
+                } else {
+                    message.info(`${e.term_gourp_3} exists in glossary terms!`);
+                }
+                if (!(`urn:li:glossaryTerm:${termId}` in dict.GLOSSARY_TERM)) {
+                    console.log(`urn:li:glossaryTerm:${termId}`);
+                    glossaryInsert.GLOSSARY_TERM[termId] = {
+                        id: termId,
+                        name: e.term,
+                        parentNode: `urn:li:glossaryNode:${termGourp3Id}`,
+                    };
+                } else {
+                    console.log(`error: urn:li:glossaryTerm:${termId}`);
+                    message.info(`${e.term} exists in glossary terms!`);
+                }
             }
         });
         // for (const key in glossaryInsert.GLOSSARY_NODE.keys()) {
