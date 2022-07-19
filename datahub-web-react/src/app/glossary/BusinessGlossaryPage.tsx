@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Typography } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import styled from 'styled-components/macro';
 
 import { useGetRootGlossaryNodesQuery, useGetRootGlossaryTermsQuery } from '../../graphql/glossary.generated';
@@ -12,6 +12,7 @@ import GlossarySearch from './GlossarySearch';
 import { ProfileSidebarResizer } from '../entity/shared/containers/profile/sidebar/ProfileSidebarResizer';
 import EmptyGlossarySection from './EmptyGlossarySection';
 import CreateGlossaryEntityModal from '../entity/shared/EntityDropdown/CreateGlossaryEntityModal';
+import ImportCSVModal from '../entity/shared/tabs/Properties/ImportCSVModal';
 import { EntityType } from '../../types.generated';
 
 export const HeaderWrapper = styled(TabToolbar)`
@@ -51,6 +52,7 @@ function BusinessGlossaryPage() {
 
     const [isCreateTermModalVisible, setIsCreateTermModalVisible] = useState(false);
     const [isCreateNodeModalVisible, setIsCreateNodeModalVisible] = useState(false);
+    const [isImportCSVModalVisible, setImportCSVModalVisible] = useState(false);
 
     return (
         <>
@@ -77,6 +79,9 @@ function BusinessGlossaryPage() {
                             <Button type="text" onClick={() => setIsCreateNodeModalVisible(true)}>
                                 <PlusOutlined /> Add Term Group
                             </Button>
+                            <Button type="text" onClick={() => setImportCSVModalVisible(true)}>
+                                <UploadOutlined /> Import by CSV
+                            </Button>
                         </div>
                     </HeaderWrapper>
                     {hasTermsOrNodes && <GlossaryEntitiesList nodes={nodes || []} terms={terms || []} />}
@@ -98,6 +103,9 @@ function BusinessGlossaryPage() {
                     onClose={() => setIsCreateNodeModalVisible(false)}
                     refetchData={refetchForNodes}
                 />
+            )}
+            {isImportCSVModalVisible && (
+                <ImportCSVModal onClose={() => setImportCSVModalVisible(false)} refetchData={refetchForNodes} />
             )}
         </>
     );
