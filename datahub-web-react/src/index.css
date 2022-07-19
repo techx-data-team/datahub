@@ -16,3 +16,25 @@
 [data-theme='dark'] .editable-row:hover .editable-cell-value-wrap {
     border: 1px solid #434343;
 }
+
+.react-flow__node-columnNode, .react-flow__node-tableNode {
+    background: #fff;
+    border: 1px solid #1a192b;
+    border-radius: 3px;
+    color: #222;
+    font-size: 8px;
+    padding: 1px;
+    text-align: center;
+}
+
+.react-flow__node-tableNode {
+    width: 220px;
+}
+
+.react-flow__node-columnNode {
+    width: 200px;
+}
+
+.react-flow__node-columnNode.selectable.selected {
+    background: rgb(62, 142, 39);
+}

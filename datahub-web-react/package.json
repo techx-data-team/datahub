@@ -92,7 +92,8 @@
         "papaparse": "^5.3.2",
         "@types/papaparse": "^5.3.2",
         "crypto-js": "4.1.1",
-        "md5-to-uuid": "1.0.4"
+        "md5-to-uuid": "1.0.4",
+        "react-flow-renderer": "^10.3.8"
     },
     "scripts": {
         "analyze": "source-map-explorer 'dist/static/js/*.js'",

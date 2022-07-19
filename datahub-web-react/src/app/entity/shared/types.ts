@@ -31,6 +31,7 @@ import {
     ParentNodesResult,
     SiblingProperties,
     GlossaryTermLov,
+    UpstreamLineageProperties,
 } from '../../../types.generated';
 import { FetchedEntity } from '../../lineage/types';
 
@@ -92,6 +93,7 @@ export type GenericEntityProperties = {
     siblings?: Maybe<SiblingProperties>;
     siblingPlatforms?: Maybe<DataPlatform[]>;
     listOfValue?: Maybe<Array<GlossaryTermLov>>;
+    upstreamLineages?: Maybe<UpstreamLineageProperties>;
 };
 
 export type GenericEntityUpdate = {

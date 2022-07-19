@@ -27,6 +27,7 @@ import { SidebarDomainSection } from '../shared/containers/profile/sidebar/Domai
 import { ValidationsTab } from '../shared/tabs/Dataset/Validations/ValidationsTab';
 import { OperationsTab } from './profile/OperationsTab';
 import { EntityMenuItems } from '../shared/EntityDropdown/EntityDropdown';
+import FineGrainLineagesTab from './profile/FineGrainLineage';
 
 const SUBTYPES = {
     VIEW: 'view',
@@ -111,6 +112,19 @@ export class DatasetEntity implements Entity<Dataset> {
                 {
                     name: 'Lineage',
                     component: LineageTab,
+                    display: {
+                        visible: (_, _1) => true,
+                        enabled: (_, dataset: GetDatasetQuery) => {
+                            return (
+                                (dataset?.dataset?.upstream?.total || 0) > 0 ||
+                                (dataset?.dataset?.downstream?.total || 0) > 0
+                            );
+                        },
+                    },
+                },
+                {
+                    name: 'FineGrain Lineage',
+                    component: FineGrainLineagesTab,
                     display: {
                         visible: (_, _1) => true,
                         enabled: (_, dataset: GetDatasetQuery) => {
@@ -215,6 +229,7 @@ export class DatasetEntity implements Entity<Dataset> {
     getOverridePropertiesFromEntity = (dataset?: Dataset | null): GenericEntityProperties => {
         // if dataset has subTypes filled out, pick the most specific subtype and return it
         const subTypes = dataset?.subTypes;
+        const upstreamLineages = dataset?.upstreamLineage;
         const extendedProperties: DatasetProperties | undefined | null = dataset?.properties && {
             ...dataset?.properties,
             qualifiedName: dataset?.properties?.qualifiedName || dataset?.name,
@@ -224,6 +239,7 @@ export class DatasetEntity implements Entity<Dataset> {
             externalUrl: dataset?.properties?.externalUrl,
             entityTypeOverride: subTypes ? capitalizeFirstLetter(subTypes.typeNames?.[0]) : '',
             properties: extendedProperties,
+            upstreamLineages,
         };
     };
 

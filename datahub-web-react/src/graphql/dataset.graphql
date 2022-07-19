@@ -182,6 +182,20 @@ fragment nonSiblingDatasetFields on Dataset {
             type
         }
     }
+    upstreamLineage {
+      upstreams{
+        dataset
+        type
+      }
+      fineGrainedLineages {
+        upstreams
+        upstreamType
+        downstreams
+        downstreamType
+        transformOperation
+        confidenceScore
+      }
+    }
 }
 
 mutation updateDataset($urn: String!, $input: DatasetUpdateInput!) {
