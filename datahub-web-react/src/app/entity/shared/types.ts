@@ -17,9 +17,7 @@ import {
     Ownership,
     OwnershipUpdate,
     SchemaMetadata,
-    StringMapEntry,
     EntityLineageResult,
-    Domain,
     SubTypes,
     Container,
     Health,
@@ -32,6 +30,8 @@ import {
     SiblingProperties,
     GlossaryTermLov,
     UpstreamLineageProperties,
+    CustomPropertiesEntry,
+    DomainAssociation,
 } from '../../../types.generated';
 import { FetchedEntity } from '../../lineage/types';
 
@@ -53,6 +53,10 @@ export type EntitySidebarSection = {
     properties?: any;
 };
 
+export type EntitySubHeaderSection = {
+    component: React.FunctionComponent<{ properties?: any }>;
+};
+
 export type GenericEntityProperties = {
     urn?: string;
     name?: Maybe<string>;
@@ -65,10 +69,10 @@ export type GenericEntityProperties = {
     globalTags?: Maybe<GlobalTags>;
     glossaryTerms?: Maybe<GlossaryTerms>;
     ownership?: Maybe<Ownership>;
-    domain?: Maybe<Domain>;
+    domain?: Maybe<DomainAssociation>;
     platform?: Maybe<DataPlatform>;
     dataPlatformInstance?: Maybe<DataPlatformInstance>;
-    customProperties?: Maybe<StringMapEntry[]>;
+    customProperties?: Maybe<CustomPropertiesEntry[]>;
     institutionalMemory?: Maybe<InstitutionalMemory>;
     schemaMetadata?: Maybe<SchemaMetadata>;
     externalUrl?: Maybe<string>;
@@ -120,6 +124,7 @@ export type UpdateEntityType<U> = (
 export type EntityContextType = {
     urn: string;
     entityType: EntityType;
+    dataNotCombinedWithSiblings: any;
     entityData: GenericEntityProperties | null;
     baseEntity: any;
     updateEntity?: UpdateEntityType<any> | null;
