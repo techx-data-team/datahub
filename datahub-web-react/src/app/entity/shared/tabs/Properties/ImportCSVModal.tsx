@@ -5,7 +5,7 @@ import md5ToUuid from 'md5-to-uuid';
 // import styled from 'styled-components/macro';
 // import { useUpdateCustomPropertiesMutation } from '../../../../../graphql/mutations.generated';
 // import { StringMapEntryInput } from '../../../../../types.generated';
-import { EntityType } from '../../../../../types.generated';
+import { EntityType, CreateGlossaryEntityInput } from '../../../../../types.generated';
 // import { useEntityRegistry } from '../../../../useEntityRegistry';
 import { useRefetch } from '../../EntityContext';
 import PropertiesTermsTable, { PropertyDataType } from './PropertiesTermsTable';
@@ -56,11 +56,11 @@ function ImportCSVModal(props: Props) {
         if (typeof temp === 'object') setSearchResults(temp);
     }
 
-    function createGlossaryEntity(entityType: EntityType, inputValue: any) {
+    async function createGlossaryEntity(entityType: EntityType, inputValue: CreateGlossaryEntityInput) {
         const mutation =
             entityType === EntityType.GlossaryTerm ? createGlossaryTermMutation : createGlossaryNodeMutation;
 
-        mutation({
+        await mutation({
             variables: {
                 input: inputValue,
             },
@@ -87,11 +87,17 @@ function ImportCSVModal(props: Props) {
     }
 
     async function importGlossaryEntity() {
-        const dict = {
+        const dict: {
+            GLOSSARY_TERM: { [name: string]: CreateGlossaryEntityInput };
+            GLOSSARY_NODE: { [name: string]: CreateGlossaryEntityInput };
+        } = {
             GLOSSARY_TERM: {},
             GLOSSARY_NODE: {},
         };
-        const glossaryInsert = {
+        const glossaryInsert: {
+            GLOSSARY_TERM: { [name: string]: CreateGlossaryEntityInput };
+            GLOSSARY_NODE: { [name: string]: CreateGlossaryEntityInput };
+        } = {
             GLOSSARY_TERM: {},
             GLOSSARY_NODE: {},
         };
@@ -161,11 +167,15 @@ function ImportCSVModal(props: Props) {
                 }
             }
         });
-        await Object.values(glossaryInsert.GLOSSARY_NODE).forEach((value) =>
-            createGlossaryEntity(EntityType.GlossaryNode, value),
+        await Promise.all(
+            Object.values(glossaryInsert.GLOSSARY_NODE).map((value) =>
+                createGlossaryEntity(EntityType.GlossaryNode, value),
+            ),
         );
-        await Object.values(glossaryInsert.GLOSSARY_TERM).forEach((value) =>
-            createGlossaryEntity(EntityType.GlossaryTerm, value),
+        await Promise.all(
+            Object.values(glossaryInsert.GLOSSARY_TERM).map((value) =>
+                createGlossaryEntity(EntityType.GlossaryTerm, value),
+            ),
         );
         setTimeout(() => {
             message.success({
